@@ -195,10 +195,10 @@ label.l{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 4px}
       <button class="btn sm" id="reloadBtn" onclick="taiDuLieu(true)">Làm mới</button>
     </div>
     <div class="toolbar">
-      <label class="search">
+      <form class="search" role="search" autocomplete="off" onsubmit="return false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="Tìm theo tên file, số công văn, cơ quan, nội dung…" autocomplete="off">
-      </label>
+        <input id="q" name="tu-khoa-tim" type="search" placeholder="Tìm theo tên file, số công văn, cơ quan, nội dung…" autocomplete="off" aria-label="Tìm kiếm">
+      </form>
       <select class="inp" id="fLinhVuc"><option value="">Tất cả lĩnh vực</option></select>
       <select class="inp" id="fCoQuan"><option value="">Tất cả cơ quan</option></select>
     </div>
