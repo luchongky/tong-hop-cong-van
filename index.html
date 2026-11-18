@@ -59,6 +59,8 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
 .doc-kind{display:inline-block;margin-top:5px;padding:2px 7px;border-radius:5px;background:var(--surface-3);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 .number-cell{white-space:nowrap;font-weight:650;color:var(--ink)}
 .agency-cell{max-width:190px;line-height:1.45}
+.field-cell,.unit-cell{max-width:145px;line-height:1.45}
+.unit-cell{max-width:175px}
 .date-cell{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
 .question-cell,.answer-cell{min-width:215px;max-width:290px;line-height:1.55}
 .question-cell{font-weight:600;color:var(--ink)}
@@ -132,14 +134,15 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
       <table>
         <thead><tr>
           <th class="stt-head">STT</th>
-          <th data-s="Tóm tắt vấn đề hỏi">Tóm tắt câu hỏi <span class="ar"></span></th>
-          <th data-s="Tóm tắt trả lời">Tóm tắt câu trả lời <span class="ar"></span></th>
-          <th data-s="Tên file">Tên file <span class="ar"></span></th>
           <th data-s="Số công văn">Số công văn <span class="ar"></span></th>
           <th data-s="Cơ quan ban hành">Cơ quan ban hành <span class="ar"></span></th>
-          <th data-s="Ngày xử lý">Ngày xử lý <span class="ar"></span></th>
+          <th data-s="Lĩnh vực">Lĩnh vực <span class="ar"></span></th>
+          <th data-s="Đơn vị hỏi">Đơn vị hỏi <span class="ar"></span></th>
+          <th data-s="Tóm tắt vấn đề hỏi">Tóm tắt vấn đề hỏi <span class="ar"></span></th>
+          <th data-s="Tóm tắt trả lời">Tóm tắt trả lời <span class="ar"></span></th>
           <th data-s="Trạng thái">Trạng thái <span class="ar"></span></th>
-          <th></th>
+          <th>File lưu trữ</th>
+          <th>Thao tác</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -311,7 +314,7 @@ function chuanBi(list){
 
 async function taiDuLieu(thuCong){
   const btn = $('reloadBtn'); btn.disabled = true;
-  if(!rows.length) $('tbody').innerHTML = Array.from({length:6}).map(() => '<tr>' + '<td><div class="skel"></div></td>'.repeat(9) + '</tr>').join('');
+  if(!rows.length) $('tbody').innerHTML = Array.from({length:6}).map(() => '<tr>' + '<td><div class="skel"></div></td>'.repeat(10) + '</tr>').join('');
   $('syncInfo').textContent = 'Đang đồng bộ…';
   const t0 = performance.now();
   try{
@@ -323,7 +326,7 @@ async function taiDuLieu(thuCong){
     if(thuCong) toast('Đã làm mới dữ liệu.');
   }catch(e){
     $('syncInfo').textContent = 'Không đồng bộ được';
-    if(!rows.length) $('tbody').innerHTML = '<tr><td colspan="9" class="empty">' + esc(e.message) + '</td></tr>';
+    if(!rows.length) $('tbody').innerHTML = '<tr><td colspan="10" class="empty">' + esc(e.message) + '</td></tr>';
     toast(e.message, true);
   }finally{ btn.disabled = false; }
 }
@@ -367,18 +370,19 @@ function veLai(giuTrang){
     const id = esc(r['File ID']);
     return `<tr class="row${laLoi(r)?' err':''}" data-id="${id}">
       <td class="stt-cell">${(page-1)*pageSize+i+1}</td>
-      <td><div class="question-cell clamp">${esc(r['Tóm tắt vấn đề hỏi']) || '<span class="meta">Chưa có tóm tắt câu hỏi</span>'}</div></td>
-      <td><div class="answer-cell clamp">${esc(r['Tóm tắt trả lời']) || '<span class="meta">Chưa có tóm tắt câu trả lời</span>'}</div></td>
-      <td class="doc-cell"><div class="fname" title="${esc(r['Tên file'])}">${esc(r['Tên file'])}</div><span class="doc-kind">PDF</span></td>
       <td class="number-cell">${esc(r['Số công văn']) || '<span class="meta">Chưa có</span>'}</td>
       <td><div class="agency-cell">${esc(r['Cơ quan ban hành']) || '<span class="meta">Chưa có</span>'}</div></td>
-      <td class="date-cell">${esc(String(r['Ngày xử lý'] || '').slice(0,10)) || '<span class="meta">—</span>'}</td>
+      <td><div class="field-cell">${r['Lĩnh vực'] ? '<span class="chip">' + esc(r['Lĩnh vực']) + '</span>' : '<span class="meta">—</span>'}</div></td>
+      <td><div class="unit-cell clamp">${esc(r['Đơn vị hỏi']) || '<span class="meta">Chưa có</span>'}</div></td>
+      <td><div class="question-cell clamp">${esc(r['Tóm tắt vấn đề hỏi']) || '<span class="meta">Chưa có tóm tắt câu hỏi</span>'}</div></td>
+      <td><div class="answer-cell clamp">${esc(r['Tóm tắt trả lời']) || '<span class="meta">Chưa có tóm tắt câu trả lời</span>'}</div></td>
       <td>${badge(r)}</td>
+      <td class="file-cell">${r['Link tải'] ? `<a class="btn sm" href="${esc(r['Link tải'])}" target="_blank" rel="noopener" data-act="open">Mở / tải file</a>` : '<span class="meta">—</span>'}</td>
       <td><div class="actions">
         ${laLoi(r) ? `<button class="btn sm primary" data-act="retry" data-id="${id}">Nhận diện lại</button>` : ''}
-        ${r['Link tải'] ? `<a class="btn sm" href="${esc(r['Link tải'])}" target="_blank" rel="noopener" data-act="open">Mở file</a>` : ''}
+        <button class="btn sm danger" data-act="delete" data-id="${id}">Xóa file</button>
       </div></td></tr>`;
-  }).join('') : '<tr><td colspan="9" class="empty">' + (rows.length ? 'Không có văn bản phù hợp.' : 'Chưa có dữ liệu.') + '</td></tr>';
+  }).join('') : '<tr><td colspan="10" class="empty">' + (rows.length ? 'Không có văn bản phù hợp.' : 'Chưa có dữ liệu.') + '</td></tr>';
 
   $('pageInfo').textContent = view.length ? `Hiển thị ${(page-1)*pageSize+1}–${Math.min(page*pageSize, view.length)} / ${view.length} văn bản` : '';
   $('prevBtn').disabled = page <= 1; $('nextBtn').disabled = page >= pages;
@@ -402,7 +406,12 @@ document.querySelectorAll('th[data-s]').forEach(th => th.onclick = () => {
 });
 $('tbody').addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
-  if(b){ if(b.dataset.act === 'retry'){ e.stopPropagation(); nhanDienLai(b.dataset.id, b); } return; }
+  if(b){
+    e.stopPropagation();
+    if(b.dataset.act === 'retry') nhanDienLai(b.dataset.id, b);
+    if(b.dataset.act === 'delete') xoaFile(b.dataset.id);
+    return;
+  }
   const tr = e.target.closest('tr.row'); if(tr) moChiTiet(tr.dataset.id);
 });
 
