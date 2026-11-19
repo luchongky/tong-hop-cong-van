@@ -77,7 +77,7 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
 <header>
   <div class="wrap">
     <div class="logo">CV</div>
-    <div class="title">Tổng hợp công văn trả lời<small>Tải lên PDF · nhận diện tự động bằng AI</small></div>
+    <div class="title">Tổng hợp công văn trả lời<small>Tra cứu hồ sơ · câu hỏi và nội dung trả lời</small></div>
     <div class="spacer"></div>
     <button class="btn hide-m" onclick="moSheet()" title="Mở Google Sheet">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Sheet</button>
@@ -106,8 +106,8 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
     <div class="stat" data-f="today" onclick="locTrangThai('today')"><div class="k">Xử lý hôm nay</div><div class="v" id="sToday">–</div></div>
   </section>
 
-  <section class="card" style="margin-bottom:16px">
-    <div class="card-h"><h2>Tải công văn lên</h2><span class="meta">PDF, có thể chọn nhiều file — xử lý song song 2 file/lượt</span></div>
+  <section class="card" id="uploadCard" style="margin-bottom:16px">
+    <div class="card-h"><h2>Tải công văn lên</h2><span class="meta">Cần tài khoản quản trị · PDF · xử lý song song 2 file/lượt</span></div>
     <div class="drop" id="drop" onclick="document.getElementById('fileInput').click()">
       <div>Kéo thả file PDF vào đây hoặc <b>bấm để chọn</b></div>
       <div class="hint">File gốc được lưu vào Google Drive, kết quả ghi vào Google Sheet</div>
@@ -115,6 +115,7 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
     </div>
     <div class="queue" id="queue"></div>
   </section>
+
 
   <section class="card">
     <div class="card-h">
@@ -478,6 +479,7 @@ function docBase64(file){
 }
 
 async function taiLen(files){
+  if(!adminCred){ toast('Cần đăng nhập quản trị để tải công văn.', true); return; }
   files = files.filter(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
   if(!files.length){ toast('Chỉ nhận file PDF.', true); return; }
   const items = files.map(f => {
@@ -504,8 +506,18 @@ async function taiLen(files){
   setTimeout(() => items.forEach(({el}) => el.classList.contains('done') && el.remove()), 8000);
 }
 
+
 /* ============ Quản trị: xóa file, quản lý API ============ */
 let adminCred = null, choAdmin = null;
+async function moTaiLen(){
+  try{
+    const c = await xinAdmin('Tải công văn lên', 'Đăng nhập tài khoản quản trị để tải và nhận diện công văn.');
+    await api('layDanhSachApiQuanTri', ...c);
+    adminCred = c;
+    const card = $('uploadCard'); card.style.display = '';
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }catch(e){ if(e.message !== 'Đã hủy'){ adminCred = null; toast(e.message, true); } }
+}
 function xinAdmin(tieuDe, ghiChu){
   return new Promise((ok, no) => {
     if(adminCred) return ok(adminCred);
@@ -594,11 +606,23 @@ async function themApiMoi(){
 /* ============ Khác ============ */
 async function moSheet(){
   const w = window.open('about:blank', '_blank');
-  try{ const url = await api('layLinkSheet'); if(url){ w.location = url; } else { w.close(); toast('Chưa có Sheet nào được tạo.', true); } }
-  catch(e){ w.close(); toast(e.message, true); }
+  try{
+    const c = await xinAdmin('Mở Google Sheet', 'Đăng nhập tài khoản quản trị để truy cập Sheet.');
+    await api('layDanhSachApiQuanTri', ...c);
+    adminCred = c;
+    const url = await api('layLinkSheet');
+    if(url){ w.location = url; } else { w.close(); toast('Chưa có Sheet nào được tạo.', true); }
+  }catch(e){ if(w) w.close(); if(e.message !== 'Đã hủy'){ adminCred = null; toast(e.message, true); } }
 }
 function dongModal(id){ $(id).classList.remove('show'); }
-function moCaiDat(){ $('apiUrl').value = API_URL; $('setupMsg').textContent = ''; $('mSetup').classList.add('show'); }
+async function moCaiDat(){
+  try{
+    const c = await xinAdmin('Cài đặt kết nối', 'Đăng nhập tài khoản quản trị để thay đổi kết nối Apps Script.');
+    await api('layDanhSachApiQuanTri', ...c);
+    adminCred = c;
+    $('apiUrl').value = API_URL; $('setupMsg').textContent = ''; $('mSetup').classList.add('show');
+  }catch(e){ if(e.message !== 'Đã hủy'){ adminCred = null; toast(e.message, true); } }
+}
 async function luuCaiDat(){
   const url = $('apiUrl').value.trim(), m = $('setupMsg');
   if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)){ m.className = 'msg err'; m.textContent = 'URL phải có dạng https://script.google.com/…/exec'; return; }
