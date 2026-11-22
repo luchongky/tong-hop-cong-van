@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tổng hợp công văn trả lời</title>
+<title>Tra cứu công văn & hỏi đáp</title>
 <meta name="author" content="Lục Hồng Kỳ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,12 +82,14 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
 .kho-intro h2{margin:0;font-size:22px}.kho-intro p{margin:6px 0 0;color:var(--muted);font-size:14px}
 
 </style>
+<link rel="stylesheet" href="kho.css">
+<link rel="stylesheet" href="portal.css">
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="logo">CV</div>
-    <div class="title">Tổng hợp công văn trả lời<small>Tra cứu hồ sơ · câu hỏi và nội dung trả lời</small></div>
+    <div class="logo">HĐ</div>
+    <div class="title">Tra cứu công văn & hỏi đáp<small>Văn bản · Kiến nghị · Chính sách tài chính</small></div>
     <div class="spacer"></div>
     <button class="btn hide-m" onclick="moSheet()" title="Mở Google Sheet">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Sheet</button>
@@ -103,11 +105,11 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
 <main class="wrap">
   <section class="hero">
     <div class="hero-copy">
-      <div class="eyebrow">Bảng điều khiển xử lý văn bản</div>
-      <h1>Quản lý công văn trả lời</h1>
-      <p>Theo dõi trọn vẹn hồ sơ công văn: tên file, số công văn, cơ quan ban hành, ngày xử lý, câu hỏi và câu trả lời trong cùng một bảng.</p>
+      <div class="eyebrow">Kho văn bản trả lời</div>
+      <h1>Công văn trả lời</h1>
+      <p>Tìm theo nội dung, lĩnh vực hoặc cơ quan ban hành. Chọn một hồ sơ để xem đầy đủ câu hỏi, nội dung trả lời và tài liệu gốc.</p>
     </div>
-    <div class="hero-mark" aria-hidden="true">⌁</div>
+    <button class="btn primary" onclick="moTaiLen()">Tải công văn</button>
   </section>
   <section class="grid-stats" id="stats">
     <div class="stat active" data-f="all" onclick="locTrangThai('all')"><div class="k">Tổng văn bản</div><div class="v" id="sAll">–</div></div>
@@ -116,7 +118,7 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
     <div class="stat" data-f="today" onclick="locTrangThai('today')"><div class="k">Xử lý hôm nay</div><div class="v" id="sToday">–</div></div>
   </section>
 
-  <section class="card" id="uploadCard" style="margin-bottom:16px">
+  <section class="card" id="uploadCard" style="margin-bottom:16px;display:none">
     <div class="card-h"><h2>Tải công văn lên</h2><span class="meta">Cần tài khoản quản trị · PDF · xử lý song song 2 file/lượt</span></div>
     <div class="drop" id="drop" onclick="document.getElementById('fileInput').click()">
       <div>Kéo thả file PDF vào đây hoặc <b>bấm để chọn</b></div>
@@ -170,7 +172,7 @@ main{padding:30px 0 72px}.hero{display:flex;align-items:flex-end;gap:20px;margin
       <h2>Hỏi đáp chính sách tài chính — Bộ Tài chính</h2>
       <span class="meta" id="hdMeta">Từ 01/07/2025 · tự động quét hằng ngày</span>
       <div class="spacer"></div>
-      <a class="btn sm" href="https://portal.mof.gov.vn/hoidapcstc/" target="_blank" rel="noopener">Cổng BTC ↗</a>
+      <a class="btn sm" href="https://portal.mof.gov.vn/hoidapcstc/" target="_blank" rel="noopener">Cổng Bộ Tài chính</a>
       <button class="btn sm" id="hdQuetBtn" onclick="hdQuetNgay()">Quét cập nhật ngay</button>
     </div>
     <div class="toolbar">
@@ -376,7 +378,7 @@ function veLai(giuTrang){
   $('tbody').innerHTML = slice.length ? slice.map((r, i) => {
     const id = esc(r['File ID']);
     return `<tr class="row${laLoi(r)?' err':''}" data-id="${id}">
-      <td class="stt-cell">${(page-1)*pageSize+i+1}</td>
+      <td class="stt-cell"><button class="btn sm" aria-label="Xem chi tiết hồ sơ ${(page-1)*pageSize+i+1}" onclick="moChiTiet(this.closest('tr').dataset.id);event.stopPropagation()">${(page-1)*pageSize+i+1}</button></td>
       <td><div class="field-cell">${r['Lĩnh vực'] ? '<span class="chip">' + esc(r['Lĩnh vực']) + '</span>' : '<span class="meta">—</span>'}</div></td>
       <td><div class="question-cell clamp">${esc(r['Tóm tắt vấn đề hỏi']) || '<span class="meta">Chưa có tóm tắt câu hỏi</span>'}</div></td>
       <td><div class="answer-cell clamp">${esc(r['Tóm tắt trả lời']) || '<span class="meta">Chưa có tóm tắt câu trả lời</span>'}</div></td>
@@ -696,7 +698,7 @@ function hdHienThi(kq){
       '<div class="hd-tags"><span class="hd-tag">' + esc(r.ngay) + '</span>' +
       (r.linhVuc ? '<span class="hd-tag lv">' + esc(r.linhVuc) + '</span>' : '') +
       (r.coQuan ? '<span class="hd-tag">' + esc(r.coQuan) + '</span>' : '') +
-      '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">Xem trên cổng BTC ↗</a></div>' +
+      '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">Xem nguồn tại Bộ Tài chính</a></div>' +
       '<div class="hd-q gon" title="Bấm để xem đủ câu hỏi" onclick="this.classList.toggle(\'gon\')"><b>Hỏi:</b> ' + esc(r.cauHoi) + '</div>' +
       '<details><summary>Xem trả lời</summary><div class="hd-a">' + esc(r.traLoi) + '</div></details>' +
     '</div>').join('') : '<div class="empty">Không có hỏi đáp phù hợp.</div>';
@@ -735,8 +737,6 @@ if (API_URL) hdTim(1);
   main.prepend(docs);
   hd.id='hdCard';hd.classList.add('portal-panel');hd.style.marginTop='0';
   const kho=document.createElement('section');kho.id='panel-kho-cau-hoi';kho.className='card portal-panel';kho.hidden=true;
-  const appUrl='https://script.google.com/macros/s/AKfycbwLX_omKLtpLruP-77M6SqvWV6wP9JXHr2SImWgbDYWsIrQxqWjGVXjLCEOSPdIYIz90g/exec';
-  kho.innerHTML='<div class="kho-intro"><div><h2>Kho câu hỏi</h2><p>Tra cứu câu hỏi, kiến nghị và nội dung trả lời từ Word, PDF, Excel.</p><p>Đăng nhập Google bằng tài khoản được cấp quyền. Quản trị: samlequynh@gmail.com.</p></div><a class="btn" target="_blank" rel="noopener" href="'+appUrl+'">Đăng nhập / mở riêng</a></div><p class="meta" style="margin:0;padding:0 20px 14px">Nếu Google yêu cầu đăng nhập hoặc khung chưa hiển thị, bấm nút trên rồi quay lại tab này.</p><iframe id="khoFrame" title="Kho câu hỏi – tra cứu và nhận diện AI" allow="clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
   main.appendChild(kho);
   const nav=document.createElement('nav');nav.className='portal-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Chọn kho tra cứu');
   const items=[['cong-van','Công văn trả lời',docs],['kho-cau-hoi','Kho câu hỏi',kho],['bo-tai-chinh','Hỏi đáp Bộ Tài chính',hd]];
@@ -751,13 +751,14 @@ if (API_URL) hdTim(1);
   function select(key){
     if(!items.some(x=>x[0]===key))key='cong-van';
     items.forEach(([id,label,panel],i)=>{const active=id===key;panel.hidden=!active;nav.children[i].setAttribute('aria-selected',String(active));nav.children[i].tabIndex=active?0:-1;});
-    const frame=document.getElementById('khoFrame');if(key==='kho-cau-hoi'&&!frame.hasAttribute('src'))frame.src=appUrl;
+
   }
   window.addEventListener('hashchange',()=>select(location.hash.slice(1)));
   select(location.hash.slice(1));
 })();
 </script>
 
+<script src="kho.js"></script>
 </body>
 </html>
 
